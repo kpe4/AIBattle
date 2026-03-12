@@ -59,7 +59,7 @@ function update(){
   else if(keys["ArrowRight"]) player.dx=player.speed;
   else player.dx=0;
 
-  if(keys["Space"] && player.onGround){
+  if(keys["ArrowUp"] && player.onGround){
     player.dy=-player.jump;
     player.onGround=false;
   }

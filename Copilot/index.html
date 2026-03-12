@@ -1,1 +1,124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Мини Платформер</title>
+<style>
+body { margin:0; overflow:hidden; background:#222; }
+#game {
+  position:relative;
+  width:800px; height:400px;
+  margin:20px auto; background:#333;
+  border:3px solid #555;
+}
+.player {
+  position:absolute;
+  width:30px; height:40px;
+  background:#4af;
+}
+.platform {
+  position:absolute;
+  background:#6c6;
+}
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="player" class="player"></div>
+  <div class="platform" style="left:0; top:360px; width:800px; height:40px;"></div>
+  <div class="platform" style="left:150px; top:280px; width:120px; height:20px;"></div>
+  <div class="platform" style="left:350px; top:220px; width:150px; height:20px;"></div>
+  <div class="platform" style="left:600px; top:300px; width:120px; height:20px;"></div>
+</div>
 
+<script>
+const game = document.getElementById("game");
+const player = document.getElementById("player");
+const plats = [...document.querySelectorAll(".platform")];
+
+let x = 50, y = 0;
+let vx = 0, vy = 0;
+let onGround = false;
+
+const keys = { left:false, right:false, up:false };
+
+document.addEventListener("keydown", e=>{
+  if(e.code==="ArrowLeft") keys.left=true;
+  if(e.code==="ArrowRight") keys.right=true;
+  if(e.code==="ArrowUp") keys.up=true;
+});
+document.addEventListener("keyup", e=>{
+  if(e.code==="ArrowLeft") keys.left=false;
+  if(e.code==="ArrowRight") keys.right=false;
+  if(e.code==="ArrowUp") keys.up=false;
+});
+
+function loop(){
+  // управление
+  vx = 0;
+  if(keys.left) vx = -3;
+  if(keys.right) vx = 3;
+
+  // прыжок
+  if(keys.up && onGround){
+    vy = -10;
+    onGround = false;
+  }
+
+  // гравитация
+  vy += 0.5;
+  if(vy > 10) vy = 10;
+
+  // движение
+  x += vx;
+  y += vy;
+
+  // коллизии
+  onGround = false;
+
+
+plats.forEach(p=>{
+    const gameRect = game.getBoundingClientRect();
+    const pr = p.getBoundingClientRect();
+    const pl = player.getBoundingClientRect();
+
+  if(pl.right > pr.left && pl.left < pr.right &&
+     pl.bottom > pr.top && pl.top < pr.bottom){
+
+    // сверху платформы
+    if(vy > 0 && pl.bottom - pr.top < 20){
+      y = pr.top - gameRect.top - pl.height;
+      vy = 0;
+      onGround = true;
+    }
+    // удар головой
+    else if(vy < 0 && pr.bottom - pl.top < 20){
+      y = pr.bottom - gameRect.top;
+      vy = 0;
+    }
+    // боковые
+    else if(vx > 0){
+      x = pr.left - gameRect.left - pl.width;
+    } else if(vx < 0){
+      x = pr.right - gameRect.left;
+    }
+  }
+});
+
+
+  // границы
+  if(x < 0) x = 0;
+  if(x > 770) x = 770;
+  if(y > 360) { y = 360; vy = 0; onGround = true; }
+
+  // рендер
+  player.style.left = x + "px";
+  player.style.top = y + "px";
+
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>
